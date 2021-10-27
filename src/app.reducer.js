@@ -21,6 +21,7 @@ export const initialState = {
 }
 
 const AppReducer = (state = initialState, action= {}) => {
+  console.log(state)
     switch(action.type) {
         case "UPDATE_CURRENT_DATA":
           console.log(action.payload)

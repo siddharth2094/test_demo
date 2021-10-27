@@ -1,17 +1,45 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useContext } from "react";
 import {CKEditor} from "@ckeditor/ckeditor5-react";
 import Editor from "ckeditor5-custom-build/build/ckeditor";
 import { useEffect } from "react";
 import { debounce } from "lodash";
+import { InitDataContext } from "./InitialContext";
 
 const EditorComponent = (props) => {
     var abc;
+    const initialData = useContext(InitDataContext);
+  const {globalState, dispatch} = initialData;
     const [editorData, setEditorData] = useState("");
-    const [editorReady, setEditorReady] = useState(false);
+    // const [editorReady, setEditorReady] = useState(false);
 
     let toolbar = ["bold", "|", "italic", "|", "Underline", "|", "superScript", "|", "subScript", "|", "numberedList", "|", "bulletedList", "|", "outDent", "|", "inDent", "|", "specialCharacters"];
 
-    
+    const setCandidateData = (newContent) => {
+        let currentItemResponse = globalState.currentItem;
+        currentItemResponse.candidateItemData.response = newContent;
+        console.log(currentItemResponse)
+        let data = globalState.data;
+        data[currentItemResponse.index] = currentItemResponse
+        console.log(data,'data')
+        // globalState.currentItem.candidateItemData.response = newContent;
+        // console.log(globalState.currentItem)
+        // setEditorData(newContent)
+        // globalState.data[globalState.currentItem.index] = globalState.currentItem;
+        // console.log(globalState)
+        // // dispatch({
+        // //   type: "UPDATE_DATA",
+        // //   payload: globalState.data
+        // // })
+        dispatch({
+          type: "UPDATE_CURRENT_DATA",
+          payload: currentItemResponse
+        })
+        dispatch({
+          type: "UPDATE_DATA",
+          payload: data
+        })
+        
+      }
 
     const editorConfig = {
         toolbar: toolbar,
@@ -22,21 +50,15 @@ const EditorComponent = (props) => {
 
     console.log(props.data)
 
+    // const editorTextChangehandler = (editor) => {
+    //     const data = editor.getData();
+    //     // onChange(data)
+    //     setEditorData(data);
+    // }
+
     useEffect(() => {
-        console.log(props.data, 'props.data')
         setEditorData(props.data || "")
-
-    }, [props.data]);
-
-    useEffect(() => {
-        console.log(props.id)
-    },[props.id])
-
-    const editorTextChangehandler = (editor) => {
-        const data = editor.getData();
-        // onChange(data)
-        setEditorData(data);
-    }
+    },[props.data])
 
     const debounceMethod = (editor) => {
         
@@ -46,14 +68,14 @@ const EditorComponent = (props) => {
         abc = setTimeout(function() {
             const data = editor.getData();
             
-            props.setData(data)
+            setCandidateData(data)
             // props.dispatch({type:"DISABLE_SUBMIT", payload: false})
         // onChange(data)
         // setEditorData(data);
         }, 800);
     }
 
-    const editorTextChangehandlerDebounced = useCallback(debounce(editorTextChangehandler, 50), []);
+    // const editorTextChangehandlerDebounced = useCallback(debounce(editorTextChangehandler, 50), []);
 
     return (
         <React.Fragment>
@@ -64,7 +86,7 @@ const EditorComponent = (props) => {
                         }}></div> */}
                         <CKEditor
                             // data={""}
-                            data={props.data || ""}
+                            data={editorData || ""}
                             config={editorConfig}
                             editor={Editor}
                             onReady={(editor) => {
